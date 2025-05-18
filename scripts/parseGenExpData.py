@@ -407,7 +407,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions)
       hover_name='reaction',
       hover_data={'equation':True, 'p_value':True},
       labels={'x_jit':'Log₂ Fold Change','y_jit':'-log₁₀(p-value)'},
-      title=f"Volcano Plot: {group[1]} vs {group[0]}"
+      title=f"Volcano Plot: {group[0]} vs {group[1]}"
     )
     fig.add_hline(y=-np.log10(0.05), line_dash='dash', line_color='gray',
                   annotation_text="p = 0.01", annotation_position='top left')
