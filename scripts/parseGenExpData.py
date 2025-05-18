@@ -363,9 +363,9 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     # 4) Combined category for coloring
     def cat(reg, in_wc):
         if in_wc and reg.startswith('OverExpressed'):
-            return 'WC OverExpressed'
+            return 'In WC model OverExpressed({groupA}_vs_{groupB})'
         if in_wc and reg.startswith('UnderExpressed'):
-            return 'WC UnderExpressed'
+            return 'In WC model UnderExpressed({groupA}_vs_{groupB})'
         return reg
     df['cat'] = df.apply(lambda row: cat(row['regulation'], row['In_WC_model']), axis=1)
 
