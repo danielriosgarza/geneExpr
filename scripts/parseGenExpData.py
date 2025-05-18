@@ -416,21 +416,22 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     fig.update_traces(marker=dict(opacity=0.8))
     fig.update_layout(legend_title_text='Regulation/Highlight', template='simple_white')
     
-    fig.add_trace(go.Scatter(
-        x=[None], y=[None],
-        mode='markers',
-        marker=dict(size=14, color='lightgray', opacity=0.8),
-        showlegend=True,
-        name='In WC model'
-        ))
-    # Small dot = not in WC model
-    fig.add_trace(go.Scatter(
-        x=[None], y=[None],
-        mode='markers',
-        marker=dict(size=6, color='lightgray', opacity=0.8),
-        showlegend=True,
-        name='Not in WC model'
-        ))
+    fig.add_annotation(
+    dict(
+        xref='paper', yref='paper',
+        x=1.02, y=0.95,   # position just to the right of the top‐right corner
+        text="<b>Marker size</b><br>"
+             "Large = in WC model<br>"
+             "Small = not in WC model",
+        showarrow=False,
+        align='left',
+        font=dict(size=12, color='black'),
+        bordercolor="black",
+        borderwidth=1,
+        bgcolor="white",
+        opacity=0.8
+            )
+        )
 
     # 10) Display inline
     fig.show()
