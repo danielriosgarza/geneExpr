@@ -341,13 +341,13 @@ def extracReactions(exprObj, reactionList, group):
     
 def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions, species_name):
     group = (groupA, groupB)
-    x,p = extracReactions(geneExprObj, reactionList, group)
+    x, p = extracReactions(geneExprObj, reactionList, group)
 
     # 1) Build DataFrame
     df = pd.DataFrame({
-      'reaction':    reactionList,
-      'fold_change': x,
-      'p_value':     p
+        'reaction':    reactionList,
+        'fold_change': x,
+        'p_value':     p
     })
     df['neg_log10_p'] = -np.log10(df['p_value'])
 
@@ -361,10 +361,12 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     df['In_WC_model'] = df['reaction'].isin(wc_reactions)
 
     # 4) Combined category for coloring
-    def cat(r, h):
-        if h and r.startswith('OverExpressed'):   return 'WC OverExpressed'
-        if h and r.startswith('UnderExpressed'):  return 'WC UnderExpressed'
-        return r
+    def cat(reg, in_wc):
+        if in_wc and reg.startswith('OverExpressed'):
+            return 'WC OverExpressed'
+        if in_wc and reg.startswith('UnderExpressed'):
+            return 'WC UnderExpressed'
+        return reg
     df['cat'] = df.apply(lambda row: cat(row['regulation'], row['In_WC_model']), axis=1)
 
     # 5) Pull reaction equations
@@ -372,7 +374,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     for rid in df['reaction']:
         try:
             eq = gsmm.reactions.get_by_id(rid) \
-                     .build_reaction_string(use_metabolite_names=True)
+                      .build_reaction_string(use_metabolite_names=True)
         except Exception:
             eq = ''
         eqs.append(eq)
@@ -383,34 +385,33 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     df['x_jit'] = df['fold_change'] + np.random.uniform(-0.5, 0.5, size=len(df))
     df['y_jit'] = df['neg_log10_p'] + np.random.uniform(-0.5, 0.5, size=len(df))
 
-    # 7) Marker sizing
+    # 7) Marker sizing: large for ALL wc_reactions, small otherwise
     df['size'] = np.where(df['In_WC_model'], 14, 6)
 
     # 8) Neon color map
     color_map = {
-      f'OverExpressed({groupA}_vs_{groupB})': '#3A68AE',
-      f'UnderExpressed({groupA}_vs_{groupB})': '#44A043',
-      'Not significant': 'lightgray',
-      'WC OverExpressed': '#00BFFF',   # neon deep‐sky blue
-      'WC UnderExpressed': '#39FF14'   # neon green
+        f'OverExpressed({groupA}_vs_{groupB})': '#3A68AE',
+        f'UnderExpressed({groupA}_vs_{groupB})': '#44A043',
+        'Not significant':                     'lightgray',
+        'WC OverExpressed':                    '#00BFFF',
+        'WC UnderExpressed':                   '#39FF14'
     }
 
     # 9) Plotly volcano
     fig = px.scatter(
-      df,
-      x='x_jit',
-      y='y_jit',
-      color='cat',
-      color_discrete_map=color_map,
-      size='size',
-      size_max=16,
-      hover_name='reaction',
-      hover_data={'equation':True, 'p_value':True},
-      labels={'x_jit':'Log₂ Fold Change','y_jit':'-log₁₀(p-value)'},
-      title=f"Volcano Plot {species_name}: {group[0]} vs {group[1]}"
+        df,
+        x='x_jit', y='y_jit',
+        color='cat',
+        color_discrete_map=color_map,
+        size='size',
+        size_max=16,
+        hover_name='reaction',
+        hover_data={'equation':True, 'p_value':True},
+        labels={'x_jit':'Log₂ Fold Change','y_jit':'-log₁₀(p-value)'},
+        title=f"Volcano Plot {species_name}: {group[0]} vs {group[1]}"
     )
     fig.add_hline(y=-np.log10(0.05), line_dash='dash', line_color='gray',
-                  annotation_text="p = 0.01", annotation_position='top left')
+                  annotation_text="p = 0.05", annotation_position='top left')
     fig.add_vline(x=0, line_dash='dash', line_color='black')
     fig.update_traces(marker=dict(opacity=0.8))
     fig.update_layout(legend_title_text='Regulation/Highlight', template='simple_white')
@@ -421,6 +422,5 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     # 11) Return both figure and a slimmed‐down table
     df_out = df[['reaction','equation','fold_change','p_value','In_WC_model']].copy()
     return fig, df_out
-            
 
 
