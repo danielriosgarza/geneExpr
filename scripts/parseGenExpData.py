@@ -419,7 +419,9 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     fig.add_annotation(
     dict(
         xref='paper', yref='paper',
-        x=1.02, y=0.95,   # position just to the right of the top‐right corner
+        x=1.02, y=0.05, 
+        xanchor='left',       
+        yanchor='bottom',     
         text="<b>Marker size</b><br>"
              "Large = in WC model<br>"
              "Small = not in WC model",
@@ -427,7 +429,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
         align='left',
         font=dict(size=12, color='black'),
         bordercolor="black",
-        borderwidth=1,
+        borderwidth=0.5,
         bgcolor="white",
         opacity=0.8
             )
