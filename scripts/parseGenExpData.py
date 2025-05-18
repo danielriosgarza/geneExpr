@@ -393,8 +393,8 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
         f'OverExpressed({groupA}_vs_{groupB})': '#3A68AE',
         f'UnderExpressed({groupA}_vs_{groupB})': '#44A043',
         'Not significant':                     'lightgray',
-        'WC OverExpressed':                    '#00BFFF',
-        'WC UnderExpressed':                   '#39FF14'
+        'In WC model OverExpressed({groupA}_vs_{groupB})':                    '#00BFFF',
+        'In WC model UnderExpressed({groupA}_vs_{groupB})':                   '#39FF14'
     }
 
     # 9) Plotly volcano
@@ -415,6 +415,22 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     fig.add_vline(x=0, line_dash='dash', line_color='black')
     fig.update_traces(marker=dict(opacity=0.8))
     fig.update_layout(legend_title_text='Regulation/Highlight', template='simple_white')
+    
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='markers',
+        marker=dict(size=14, color='lightgray', opacity=0.8),
+        showlegend=True,
+        name='In WC model'
+        ))
+    # Small dot = not in WC model
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='markers',
+        marker=dict(size=6, color='lightgray', opacity=0.8),
+        showlegend=True,
+        name='Not in WC model'
+        ))
 
     # 10) Display inline
     fig.show()
