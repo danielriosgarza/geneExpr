@@ -17,6 +17,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from IPython.display import HTML
+
 
 class GeneExpr:
     
@@ -437,6 +439,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
 
     # 10) Display inline
     fig.show()
+    display(HTML(fig.to_html(full_html=False, include_plotlyjs='cdn')))
 
     # 11) Return both figure and a slimmed‐down table
     df_out = df[['reaction','equation','fold_change','p_value','In_WC_model']].copy()
