@@ -438,7 +438,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
         )
 
     # 10) Display inline
-    fig.show()
+    #fig.show()
     display(HTML(fig.to_html(full_html=False, include_plotlyjs='cdn')))
 
     # 11) Return both figure and a slimmed‐down table
