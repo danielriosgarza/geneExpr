@@ -5,6 +5,7 @@ Created on Thu Feb 16 11:06:59 2023
 @author: danie
 """
 import os
+import re
 from pathlib import Path
 import numpy as np
 import scipy.stats as sts
@@ -54,6 +55,7 @@ class GeneExpr:
         self.pvalsDeseq = self.__getPvalsDeseq()
         self.fc = self.__getFCDeseq()
         self.genes2reactions, self.reactions2genes = self.__parseModelGenes(sbmlModel)
+        self.__reaction2metadata()
         
         
     def __parseTPM(self, tpmFile):
@@ -211,6 +213,59 @@ class GeneExpr:
     
     
         return fc
+    
+
+    def __parse_pathway_column(self, text):
+        """
+        Parses pathway column of the modelSEED reactions.csv file.
+        Parameters:
+        text (str): Pathway annotations in the format: 
+                    'MetaCyc: Label (Description); ... | KEGG: Label (Description); ...'
+        Returns:
+            dict: { 'MetaCyc': [(label, description), ...], 'KEGG': [(label, description), ...] }
+        """
+        results = {'MetaCyc': [], 'KEGG': []}
+        for part in text.split('|'):
+            part = part.strip()
+            if part.startswith('MetaCyc:'):
+                db = 'MetaCyc'
+                content = part[len('MetaCyc:'):].strip()
+            elif part.startswith('KEGG:'):
+                db = 'KEGG'
+                content = part[len('KEGG:'):].strip()
+            else:
+                # Default fallback if label is missing
+                db = 'Unknown'
+                content = part
+        
+            for entry in content.split(';'):
+                entry = entry.strip()
+                match = re.match(r'^(.+?)\s*\((.+?)\)$', entry)
+                if match:
+                    label, description = match.groups()
+                    results.setdefault(db, []).append((label.strip(), description.strip()))
+                elif entry:
+                    results.setdefault(db, []).append((entry, None))
+        return results
+
+    def __reaction2metadata(self):
+        #grab some general databases
+        
+        self.seed2vmh, self.vmh2seed, self.reaction_ptw = {}, {}, {}
+        with open(os.path.join(Path(os.getcwd()).parents[0], 'files', 'SEED2VMH_translation.csv')) as f:
+            for line in f:
+                a = line.strip().split(',')
+                self.seed2vmh[a[0]] = a[1]
+                self.vmh2seed[a[1]] = a[0]
+        self.reactions = [i for i in self.reactions2genes]
+        with open(os.path.join(Path(os.getcwd()).parents[0], 'files', 'reactions.tsv')) as f:
+            f.readline()
+            for line in f:
+                a = line.strip().split('\t')
+                self.reaction_ptw[a[0]] = self.__parse_pathway_column(a[11])
+            
+        
+            
         
     
         
@@ -371,8 +426,8 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
         return reg
     df['cat'] = df.apply(lambda row: cat(row['regulation'], row['In_WC_model']), axis=1)
 
-    # 5) Pull reaction equations
-    eqs = []
+    # 5) Pull reaction equations and pathways
+    eqs, ptws_metacyc, ptws_kegg = [], [], []
     for rid in df['reaction']:
         try:
             eq = gsmm.reactions.get_by_id(rid) \
@@ -380,7 +435,24 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
         except Exception:
             eq = ''
         eqs.append(eq)
+        
+        try:
+            ptw_m = str(geneExprObj.reaction_ptw[geneExprObj.vmh2seed[rid]]['MetaCyc'])
+            ptw_k = str(geneExprObj.reaction_ptw[geneExprObj.vmh2seed[rid]]['KEGG'])
+        
+        except Exception:
+            ptw_m = ''
+            ptw_k = ''
+        
+        ptws_metacyc.append(ptw_m)
+        ptws_kegg.append(ptw_k)
+        
+            
+            
+        
     df['equation'] = eqs
+    df['pathway_MetaCyc'] = ptws_metacyc
+    df['pathway_KEGG'] = ptws_kegg
 
     # 6) Jitter
     np.random.seed(0)
@@ -408,7 +480,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
         size='size',
         size_max=16,
         hover_name='reaction',
-        hover_data={'equation':True, 'p_value':True},
+        hover_data={'equation':True, 'p_value':True, 'pathway_MetaCyc':True, 'pathway_KEGG':True},
         labels={'x_jit':'Log₂ Fold Change','y_jit':'-log₁₀(p-value)'},
         title=f"<i>{species_name}</i>: {group[0]} vs {group[1]}"
     )
@@ -442,7 +514,7 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     display(HTML(fig.to_html(full_html=False, include_plotlyjs='cdn')))
 
     # 11) Return both figure and a slimmed‐down table
-    df_out = df[['reaction','equation','fold_change','p_value','In_WC_model']].copy()
+    df_out = df[['reaction','equation','pathway_MetaCyc','pathway_KEGG','fold_change','p_value','In_WC_model']].copy()
     return fig, df_out
 
 
