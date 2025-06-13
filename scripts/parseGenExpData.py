@@ -420,9 +420,9 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
     # 4) Combined category for coloring
     def cat(reg, in_wc):
         if in_wc and reg.startswith('OverExpressed'):
-            return 'In WC model OverExpressed({groupA}_vs_{groupB})'
+            return f'In mechanistic model (Fig1) OverExpressed({groupA}_vs_{groupB})'
         if in_wc and reg.startswith('UnderExpressed'):
-            return 'In WC model UnderExpressed({groupA}_vs_{groupB})'
+            return f'In mechanistic model (Fig1) UnderExpressed({groupA}_vs_{groupB})'
         return reg
     df['cat'] = df.apply(lambda row: cat(row['regulation'], row['In_WC_model']), axis=1)
 
@@ -464,11 +464,11 @@ def analyze_group(groupA, groupB, geneExprObj, gsmm, reactionList, wc_reactions,
 
     # 8) Neon color map
     color_map = {
-        f'OverExpressed({groupA}_vs_{groupB})': '#3A68AE',
-        f'UnderExpressed({groupA}_vs_{groupB})': '#44A043',
-        'Not significant':                     'lightgray',
-        'In WC model OverExpressed({groupA}_vs_{groupB})':                    '#00BFFF',
-        'In WC model UnderExpressed({groupA}_vs_{groupB})':                   '#39FF14'
+    f'OverExpressed({groupA}_vs_{groupB})': '#3A68AE',  # blue
+    f'UnderExpressed({groupA}_vs_{groupB})': '#44A043',  # green
+    'Not significant': 'lightgray',
+    f'In mechanistic model (Fig1) OverExpressed({groupA}_vs_{groupB})': '#00BFFF',
+    f'In mechanistic model (Fig1) UnderExpressed({groupA}_vs_{groupB})': '#39FF14'
     }
 
     # 9) Plotly volcano
